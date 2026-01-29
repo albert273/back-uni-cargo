@@ -1,7 +1,7 @@
 const express = require('express');
-const connectToDB = require('./config/connectToDb')
+const connectToDB = require('./config/connectToDb.js')
 require("dotenv").config()
-const globalError = require("./middlewares/errorMiddleware");
+const globalError = require("./middlewares/errorMiddleware.js");
 const ApiError = require("./utils/apiError.js");
 const cors = require('cors');
 
