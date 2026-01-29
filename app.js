@@ -1,68 +1,75 @@
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
-
-const connectToDB = require("./config/connectToDb");
+const express = require('express');
+const connectToDB = require('./config/connectToDb')
+require("dotenv").config()
 const globalError = require("./middlewares/errorMiddleware");
-const ApiError = require("./utils/apiError");
+const ApiError = require("./utils/apiError.js");
+const cors = require('cors');
 
-// Init App FIRST
+
+
+// connect to db
+connectToDB()
+
+// Init App
 const app = express();
 
-// Middlewares
-const corsOptions = {
-  origin: [
-    "http://localhost:3000",
-    "https://your-frontend.vercel.app", // ⬅️ ADD your frontend URL
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-};
+app.use(cors());
 
-app.use(cors(corsOptions));
-
-// IMPORTANT: handle preflight requests
-app.options("*", cors(corsOptions));
-
-app.use(express.json());
-
-// Connect to DB
-connectToDB();
+// middleware 
+app.use(express.json())
 
 // Routes
-const UserRoute = require("./routers/users.route");
-const AuthRoute = require("./routers/auth.routers");
-const MessageRoute = require("./routers/message.route");
-const QuoteRoute = require("./routers/quote.route");
+let UserRoute = require("./routers/users.route.js");
+let Auth = require("./routers/auth.routers.js");
+let Message = require("./routers/message.route.js");
+let Quote = require("./routers/quote.route.js");
 
-// APIs
+
+
+
+
+
+
+// APIS
 app.use("/api/user", UserRoute);
-app.use("/api/auth", AuthRoute);
-app.use("/api/message", MessageRoute);
-app.use("/api/quote", QuoteRoute);
+app.use("/api/auth", Auth);
+app.use("/api/message", Message);
+app.use("/api/quote", Quote);
 
-// Handle undefined routes
+
+app.get("/test", (req, res) => {
+    res.json({message: "server is running"});
+  });
+
+
+
+app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+  const status = err.status || 'error';
+  res.status(statusCode).json({
+    status,
+    message: err.message || 'Internal Server Error',
+  });
+});
+
+
+// Running server
+const PORT = process.env.PORT || 8000
+app.listen(PORT, () => 
+console.log(`Server is running in ${process.env.NODE_ENV} mode on port ${PORT}`)
+)
+
 app.all("*", (req, res, next) => {
-  next(new ApiError(`Can't find this route: ${req.originalUrl}`, 404));
-});
-
-// Global error handler
-app.use(globalError);
-
-// Run server
-const PORT = process.env.PORT || 8000;
-const server = app.listen(PORT, () => {
-  console.log(
-    `Server is running in ${process.env.NODE_ENV} mode on port ${PORT}`
-  );
-});
-
-// Handle unhandled promise rejections
+    next(new ApiError(`can't find this route: ${req.originalUrl}`, 400));
+  });
+  // Global error handling middleware
+  app.use(globalError);
+  
+// handle Rejection outside express
 process.on("unhandledRejection", (err) => {
-  console.error(`Unhandled Rejection: ${err.name} | ${err.message}`);
+  console.error(`unhandledRejection Error: ${err.name} | ${err.message}`);
   server.close(() => {
-    console.error("Shutting down...");
+    console.error("Shutting down....");
     process.exit(1);
   });
 });
