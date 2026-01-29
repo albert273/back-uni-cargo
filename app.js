@@ -1,77 +1,51 @@
-const express = require('express');
-const connectToDB = require('./config/connectToDb')
-require("dotenv").config()
-const globalError = require("./middlewares/errorMiddleware");
-const ApiError = require("./utils/apiError.js");
-const cors = require('cors');
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
 
+const connectToDB = require("../config/connectToDb");
+const globalError = require("../middlewares/errorMiddleware");
+const ApiError = require("../utils/apiError");
 
-
-
-app.use(express.json());
-
-
-// connect to db
-connectToDB()
-
-// Init App
+// Init app FIRST
 const app = express();
 
-app.use(cors());
+// ✅ CORS (allow localhost + future frontend)
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://your-frontend.vercel.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true
+}));
 
-// middleware 
-app.use(express.json())
+// ✅ Handle preflight
+app.options("*", cors());
+
+// Middleware
+app.use(express.json());
+
+// Connect to DB (should be MongoDB Atlas, not localhost)
+connectToDB();
 
 // Routes
-let UserRoute = require("./routers/users.route.js");
-let Auth = require("./routers/auth.routers.js");
-let Message = require("./routers/message.route.js");
-let Quote = require("./routers/quote.route.js");
+app.use("/api/user", require("../routers/users.route"));
+app.use("/api/auth", require("../routers/auth.routers"));
+app.use("/api/message", require("../routers/message.route"));
+app.use("/api/quote", require("../routers/quote.route"));
 
-
-
-
-
-
-
-// APIS
-app.use("/api/user", UserRoute);
-app.use("/api/auth", Auth);
-app.use("/api/message", Message);
-app.use("/api/quote", Quote);
-
-
-
-
-
-
-app.use((err, req, res, next) => {
-  const statusCode = err.statusCode || 500;
-  const status = err.status || 'error';
-  res.status(statusCode).json({
-    status,
-    message: err.message || 'Internal Server Error',
-  });
+// Test route (VERY IMPORTANT)
+app.get("/api/health", (req, res) => {
+  res.json({ status: "OK", env: process.env.NODE_ENV });
 });
 
-
-// Running server
-const PORT = process.env.PORT || 8000
-app.listen(PORT, () => 
-console.log(`Server is running in ${process.env.NODE_ENV} mode on port ${PORT}`)
-)
-
+// Not found
 app.all("*", (req, res, next) => {
-    next(new ApiError(`can't find this route: ${req.originalUrl}`, 400));
-  });
-  // Global error handling middleware
-  app.use(globalError);
-  
-// handle Rejection outside express
-process.on("unhandledRejection", (err) => {
-  console.error(`unhandledRejection Error: ${err.name} | ${err.message}`);
-  server.close(() => {
-    console.error("Shutting down....");
-    process.exit(1);
-  });
+  next(new ApiError(`Can't find route: ${req.originalUrl}`, 404));
 });
+
+// Global error handler
+app.use(globalError);
+
+// ❌ NO app.listen() on Vercel
+module.exports = app;
