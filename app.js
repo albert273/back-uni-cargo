@@ -10,7 +10,21 @@ const ApiError = require("./utils/apiError");
 const app = express();
 
 // Middlewares
-app.use(cors());
+const corsOptions = {
+  origin: [
+    "http://localhost:3000",
+    "https://your-frontend.vercel.app", // ⬅️ ADD your frontend URL
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+
+// IMPORTANT: handle preflight requests
+app.options("*", cors(corsOptions));
+
 app.use(express.json());
 
 // Connect to DB
