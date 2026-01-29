@@ -47,5 +47,4 @@ app.all("*", (req, res, next) => {
 // Global error handler
 app.use(globalError);
 
-// ❌ NO app.listen() on Vercel
 module.exports = app;
