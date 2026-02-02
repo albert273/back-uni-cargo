@@ -18,7 +18,7 @@ app.use(cors());
 // middleware 
 app.use(express.json())
 
-// Routes
+// Routess
 let UserRoute = require("./routers/users.route.js");
 let Auth = require("./routers/auth.routers.js");
 let Message = require("./routers/message.route.js");
