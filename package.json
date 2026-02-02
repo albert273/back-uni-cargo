@@ -1,10 +1,9 @@
 {
-  "name": "blog-backend",
+  "name": "uni-cargo",
   "version": "1.0.0",
-  "description": "backend of blog application",
-  "main": "app.js",
+  "main": "api/index.js",
   "scripts": {
-    "dev": "nodemon app.js"
+    "dev": "nodemon api/index.js"
   },
   "author": "Albert Nabil",
   "license": "ISC",
