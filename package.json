@@ -1,7 +1,7 @@
 {
-  "name": "blog-backend",
+  "name": "uni_cargo",
   "version": "1.0.0",
-  "description": "backend of blog application",
+  "description": "backend of import company",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
